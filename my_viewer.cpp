@@ -39,56 +39,11 @@ void MyViewer::add_model ( SnShape* s, GsVec p )
 	// you can just use a SnTransform to apply a transformation instead of a SnManipulator.
 	// You would then add the transform as 1st element of the group, and set g->separator(true).
 	// Your scene graph should always be carefully designed according to your application needs.
-
-	SnModel* snm1 = new SnModel;
-	bool ok = snm1->model()->load("C:/Users/mnguyen287/Downloads/arm/rhand.m");
-
-	if (!ok) { gsout << "Could Not Load!\n"; gs_exit(1); }
-
-	GsBox b;
-	snm1->get_bounding_box(b);
-	//gsout << "bbox = " << b << gsnl;
-
-	SnGroup* gg = new SnGroup;
-	gg->add(snm1);
-	rootg()->add(gg);
 	
-	//
-	gg->separator(true);
-	gg->add(new SnTransform);
-	SnModel* snm2 = new SnModel;
-	ok = snm2->model()->load("C:/Users/mnguyen287/Downloads/arm/rlowerarm.m");
-
-	if (!ok) { gsout << "Could Not Load!\n"; gs_exit(1); }
-
-	snm2->get_bounding_box(b);
-	gg->add(snm2);
-	rootg()->add(gg);
-	
-	//
-	gg->separator(true);
-	gg->add(new SnTransform);
-	SnModel* snm3 = new SnModel;
-	ok = snm3->model()->load("C:/Users/mnguyen287/Downloads/arm/rupperarm.m");
-
-	if (!ok) { gsout << "Could Not Load!\n"; gs_exit(1); }
-
-	snm3->get_bounding_box(b);
-	gg->add(snm3);
-	rootg()->add(gg);
-
-//SnTransform* trans = new SnTransform;
-//trans.get() --> matrix
-	//
 	SnManipulator* manip = new SnManipulator;
-	//manip.init_mat(m)
-	
-
 	GsMat m;
 	m.translation ( p );
 	manip->initial_mat ( m );
-	//m.roty(  ) // make a new matrix I*R(alpha)
-	//m.setTrans(  ) // do calculation : m*T(x, y, z)
 
 	SnGroup* g = new SnGroup;
 	SnLines* l = new SnLines;
@@ -96,7 +51,6 @@ void MyViewer::add_model ( SnShape* s, GsVec p )
 	g->add(s);
 	g->add(l);
 	manip->child(g);
-
 	// manip->visible(false); // call this to turn off mouse interaction
 
 	rootg()->add(manip);
@@ -104,11 +58,49 @@ void MyViewer::add_model ( SnShape* s, GsVec p )
 
 void MyViewer::build_scene ()
 {
-	SnPrimitive* p;
-	p = new SnPrimitive(GsPrimitive::Box, 1, 1, 1);
-	p->prim().material.diffuse=GsColor::yellow;
-	add_model ( p, GsVec(0,0,0) );
-	
+	SnGroup* g = new SnGroup;
+	SnModel* model[3];
+	SnTransform* t[3];
+	GsMat m[3];
+	GsBox b0, b1, b2;
+
+	for (int i = 0; i < 3; i++) {
+		model[i] = new SnModel;
+		t[i] = new SnTransform;
+	}
+
+	// check to see if path is correct
+	if (!model[0]->model()->load("C:/Users/MichaelNguyen/Desktop/Computer Graphics/arm/rupperarm.m")) {
+		gsout << "rupperarm.m not loaded" << gsnl;
+	}
+	model[0]->model()->centralize();
+	model[0]->model()->get_bounding_box(b0);
+	m[0].translation(GsVec(0.0f, 0.0f, b0.dz())/ 2.0f);
+	t[0]->set(m[0]);
+
+	if (!model[1]->model()->load("C:/Users/MichaelNguyen/Desktop/Computer Graphics/arm/rlowerarm.m")) {
+		gsout << "rlowerarm.m not loaded" << gsnl;
+	}
+	model[1]->model()->centralize();
+	model[1]->model()->get_bounding_box(b1);
+	m[1].translation(GsVec(0.0f, 0.0f, b1.dz()));
+	t[1]->set(m[1]);
+
+	if (!model[2]->model()->load("C:/Users/MichaelNguyen/Desktop/Computer Graphics/arm/rhand.m")) {
+		gsout << "rhand.m not loaded" << gsnl;
+	}
+	model[2]->model()->centralize();
+	model[2]->model()->get_bounding_box(b2);
+	m[2].translation(GsVec(0.0f, 0.0f, b2.dz()) );
+	t[2]->set(m[2]);
+
+
+	for (int i = 0; i < 3; i++) {
+		g->add(t[i]);
+		g->add(model[i]);
+	}
+
+	rootg()->add(g);
 }
 
 // Below is an example of how to control the main loop of an animation:
